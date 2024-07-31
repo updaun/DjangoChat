@@ -17,8 +17,9 @@
     };
 
     ws.onmessage = (event) => {
-        const message = event.data;
-        console.log('서버로부터 메시지 수신: ', message);
+        const json_string = event.data;
+        const obj = JSON.parse(json_string);
+        console.log('서버로부터 메시지 수신: ', obj);
     };
 
     
