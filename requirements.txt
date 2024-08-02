@@ -8,10 +8,14 @@ channels_redis~=4.0.0
 redis<4.4.0
 # 환경변수의 손쉬운 settings 적용
 django-environ
-# 장고 내에서 손쉬운 bootstrap5 사용 django-bootstrap5
-# 가벼운 HTTP 클라이언트 라이브러리 requests
-# HTML 파싱 라이브러리 beautifulsoup4
-# 테스트 pytest
+# 장고 내에서 손쉬운 bootstrap5 사용
+django-bootstrap5
+# 가벼운 HTTP 클라이언트 라이브러리
+requests
+# HTML 파싱 라이브러리
+beautifulsoup4
+# 테스트
+pytest
 pytest-django
 pytest-testdox
 pytest-asyncio

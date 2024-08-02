@@ -1,0 +1,16 @@
+{% load django_bootstrap5 %}
+
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Liveblog by django channels</title>
+    {% bootstrap_css %}
+    {% bootstrap_javascript %}
+  </head>
+  <body>
+    <h1>Liveblog</h1>
+    {% block content %} {% endblock %}
+    {% block extra-body %} {% endblock %}
+  </body>
+</html>

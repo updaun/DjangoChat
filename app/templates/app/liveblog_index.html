@@ -1,0 +1,83 @@
+{% extends "app/base.html" %} {% block content %}
+
+<div class="container">
+  <h1>Hello</h1>
+
+  <div class="row" id="post-list">
+    {% for post in post_list %}
+      {% include "app/partial/post.html" with post=post only %}
+    {% endfor %}
+  </div>
+</div>
+
+{% endblock %}
+
+{% block extra-body %}
+<script>
+  const handlers = {
+    ws: null,
+    connect(ws_url) {
+      this.ws = new WebSocket(ws_url);
+
+      this.ws.onopen = this.onopen.bind(this);
+      this.ws.onclose = this.onclose.bind(this);
+      this.ws.onerror = this.onerror.bind(this);
+      this.ws.onmessage = this.onmessage.bind(this);
+    },
+    onopen() {
+      console.log("웹소켓 서버와 접속");
+    },
+    onclose(event) {
+      if (!event.wasClean) {
+        console.log("웹소켓 서버와의 연결이 끊어졌습니다.");
+      }
+    },
+    onerror() {
+      console.log("웹소켓 서버와의 연결 중 오류가 발생했습니다.");
+    },
+    onmessage(event) {
+      const message_json = event.data;
+      console.log("웹소켓 텍스트 메세지 수신 : ", message_json);
+
+      const { type, post_id, post_partial_url } = JSON.parse(message_json);
+
+      switch(type) {
+        case "liveblog.post.created":
+          this.postCreated(post_id, post_partial_url);
+          break;
+        case "liveblog.post.updated":
+          this.postUpdated(post_id, post_partial_url);
+          break;
+        case "liveblog.post.deleted":
+          this.postDeleted(post_id);
+          break;
+        default:
+          console.error(`Invalid message type: ${type}`);
+      }
+    },
+    postCreated(post_id, post_partial_url) {
+      fetch(post_partial_url)
+        .then((response) => response.text())
+        .then((html) => {
+          document.querySelector("#post-list")
+            .insertAdjacentHTML("afterbegin", html);
+        });
+    },
+    postUpdated(post_id, post_partial_url) {
+      fetch(post_partial_url)
+        .then((response) => response.text())
+        .then((html) => {
+          const css_selector = `[data-post-id="${post_id}"]`;
+          document.querySelector(css_selector).outerHTML = html;
+        });
+    },
+    postDeleted(post_id) {
+      const css_selector = `[data-post-id="${post_id}"]`;
+      document.querySelector(css_selector).remove();
+    },
+  };
+
+const ws_url = "ws://127.0.0.1:8000/ws/liveblog/";
+handlers.connect(ws_url);
+</script>
+{% endblock %}
