@@ -11,3 +11,6 @@ class Room(models.Model):
     @staticmethod
     def make_chat_group_name(room=None, room_pk=None):
         return f"chat-{room_pk or room.pk}"
+
+    class Meta:
+        ordering = ["-pk"]
