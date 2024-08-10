@@ -24,6 +24,7 @@ def room_new(request):
     return render(request, "chat/room_form.html", {"form": form})
 
 
+@login_required
 def room_chat(request, room_pk):
     room = get_object_or_404(Room, pk=room_pk)
     return render(
