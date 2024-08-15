@@ -29,7 +29,7 @@
 {# TODO : 웹소켓으로 실시간 채팅 기능 구현하기 #}
 <div class="container my-5">
     <div class="row">
-        <div class="col-sm-12">
+        <div class="col-sm-8">
             <div class="card" style="height: 600px;">
                 <div class="card-header">
                     채팅방 : {{ room.name }}
@@ -39,10 +39,25 @@
                 </div>
                 <div class="card-footer">
                     <form id="message_form">
-                        <input type="text" name="message" class="form-control" autofocus autocomplete="off" />
+                        <input type="text" name="message" class="form-control"
+                            autofocus autocomplete="off" />
                     </form>
                 </div>
             </div>
+        </div>
+
+            <div class="col-sm-4">
+                <div class="card" style="height: 600px;">
+                    <div class="card-header">
+                        접속 유저 <span id="user_count"></span>
+                    </div>
+                    <div class="card-body">
+                        <ul id="user_list"></ul>
+                    </div>
+                </div>
+            </div>
+
+
             <hr class="my-3" />
             <a href="{% url 'chat:index' %}" class="btn btn-primary">대기실로 이동</a>
 
@@ -82,6 +97,7 @@
         chat_messages_tag: null,
         ws: null,
         retry: 0,
+        username_set: new Set(),
 
     init() {
         this.chat_messages_tag = document.querySelector('#chat_messages');
@@ -102,6 +118,13 @@
     onopen() {
         console.log("웹소켓 서버와 접속");
         this.retry = 0;
+
+        fetch('{% url "chat:room_users" room.pk %}')
+            .then(response => response.json())
+            .then(({ username_list }) => {
+                this.username_set = new Set([...this.username_set, ...username_list]);
+                this.update_user_list();
+            });
     },
     onclose(event) {
         const close_code = event.code;
@@ -140,9 +163,13 @@
                 break;
             case "chat.user.join":
                 this.append_message(`${username}님이 입장하셨습니다.`);
+                this.username_set.add(username);
+                this.update_user_list();
                 break;
             case "chat.user.leave":
                 this.append_message(`${username}님이 퇴장하셨습니다.`);
+                this.username_set.delete(username);
+                this.update_user_list();
                 break;
             default:
                 console.error(`Invalid message type: ${type}`);
@@ -183,6 +210,15 @@
             type: "chat.message",
             message: message,
         }));
+    },
+    update_user_list() {
+        const html = [...this.username_set]
+            .map(username => `<li>${username}</li>`)
+            .join('');
+        document.querySelector("#user_list").innerHTML = html;
+
+        document.querySelector("#user_count").textContent =
+            `(${this.username_set.size}명)`;
     },
     modal(message, ok_handler) {
         const modal_ele = document.querySelector('#staticBackdrop');
